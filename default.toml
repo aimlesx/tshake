@@ -1,0 +1,14 @@
+[all]
+skip = ['.git']
+
+[node]
+detect = ['package.json']
+remove = ['node_modules']
+
+[rust]
+detect = ['Cargo.toml']
+remove = ['target']
+
+[cpp]
+detect = ['CMakeLists.txt']
+remove = ['build']

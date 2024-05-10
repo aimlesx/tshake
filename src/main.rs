@@ -1,5 +1,7 @@
+use std::collections::HashMap;
 use clap::Parser;
 use walkdir::{DirEntry, WalkDir};
+use serde::Deserialize;
 
 #[derive(Parser)]
 #[command(version, about)]
@@ -13,6 +15,30 @@ struct Opt {
     days: u64,
 }
 
+#[derive(Deserialize)]
+struct GlobalConfig {
+    skip: Option<Vec<String>>,
+}
+
+#[derive(Deserialize)]
+struct ProjectConfig {
+    skip: Option<Vec<String>>,
+    detect: Option<Vec<String>>,
+    remove: Option<Vec<String>>,
+}
+
+#[derive(Deserialize)]
+struct Config {
+    all: Option<GlobalConfig>,
+    #[serde(flatten)]
+    projects: HashMap<String, ProjectConfig>,
+}
+
+fn get_config() -> Config {
+    let config = include_str!("../default.toml");
+    toml::from_str(config).unwrap()
+}
+
 fn should_skip(entry: &DirEntry) -> bool {
     let known_folders: Vec<&str> = include_str!("../known_folders.txt").lines().collect();
 
@@ -24,6 +50,8 @@ fn should_skip(entry: &DirEntry) -> bool {
 
 fn main() {
     let opt = Opt::parse();
+    let cfg = get_config();
+
     let mut count: u64 = 0;
 
     let iter = WalkDir::new(&opt.directory)
