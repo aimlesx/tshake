@@ -1,7 +1,8 @@
-use std::collections::HashMap;
+mod config;
+use config::get_config;
+
 use clap::Parser;
 use walkdir::{DirEntry, WalkDir};
-use serde::Deserialize;
 
 #[derive(Parser)]
 #[command(version, about)]
@@ -13,30 +14,6 @@ struct Opt {
     #[arg(short, long, default_value = "14")]
     /// Number of days after which the directory is considered stale
     days: u64,
-}
-
-#[derive(Deserialize)]
-struct GlobalConfig {
-    skip: Option<Vec<String>>,
-}
-
-#[derive(Deserialize)]
-struct ProjectConfig {
-    skip: Option<Vec<String>>,
-    detect: Option<Vec<String>>,
-    remove: Option<Vec<String>>,
-}
-
-#[derive(Deserialize)]
-struct Config {
-    all: Option<GlobalConfig>,
-    #[serde(flatten)]
-    projects: HashMap<String, ProjectConfig>,
-}
-
-fn get_config() -> Config {
-    let config = include_str!("../default.toml");
-    toml::from_str(config).unwrap()
 }
 
 fn should_skip(entry: &DirEntry) -> bool {
