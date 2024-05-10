@@ -1,20 +1,9 @@
 mod config;
+mod args;
+
 use config::get_config;
-
-use clap::Parser;
+use args::get_args;
 use walkdir::{DirEntry, WalkDir};
-
-#[derive(Parser)]
-#[command(version, about)]
-struct Opt {
-    #[arg(index = 1)]
-    /// Directory to search for stale directories
-    directory: String,
-
-    #[arg(short, long, default_value = "14")]
-    /// Number of days after which the directory is considered stale
-    days: u64,
-}
 
 fn should_skip(entry: &DirEntry) -> bool {
     let known_folders: Vec<&str> = include_str!("../known_folders.txt").lines().collect();
@@ -26,12 +15,12 @@ fn should_skip(entry: &DirEntry) -> bool {
 }
 
 fn main() {
-    let opt = Opt::parse();
+    let args = get_args();
     let cfg = get_config();
 
     let mut count: u64 = 0;
 
-    let iter = WalkDir::new(&opt.directory)
+    let iter = WalkDir::new(&args.directory)
         .into_iter()
         .filter_entry(|e| e.file_type().is_dir() && !should_skip(e));
 
