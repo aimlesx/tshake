@@ -1,5 +1,5 @@
 use clap::Parser;
-use walkdir::WalkDir;
+use walkdir::{DirEntry, WalkDir};
 
 #[derive(Parser)]
 #[command(version, about)]
@@ -13,39 +13,30 @@ struct Opt {
     days: u64,
 }
 
-fn is_project_root(entry: &walkdir::DirEntry) -> bool {
-    if !entry.file_type().is_dir() { return false; }
+fn should_skip(entry: &DirEntry) -> bool {
+    let known_folders: Vec<&str> = include_str!("../known_folders.txt").lines().collect();
 
-    false
+    entry
+        .file_name()
+        .to_str()
+        .map_or(false, |name| known_folders.contains(&name))
 }
 
 fn main() {
     let opt = Opt::parse();
     let mut count: u64 = 0;
 
-    let known_folders: Vec<&str> = include_str!("../known_folders.txt").lines().collect();
+    let iter = WalkDir::new(&opt.directory)
+        .into_iter()
+        .filter_entry(|e| e.file_type().is_dir() && !should_skip(e));
 
-    let mut iter = WalkDir::new(&opt.directory).into_iter();
-
-    while let Some(entry) = iter.next() {
-        let entry = match entry {
-            Ok(entry) => entry,
-            Err(err) => {
-                eprintln!("Error: {}", err);
-                continue;
-            },
-        };
-
-        if !entry.file_type().is_dir() { continue; }
-
-        let filename = &entry.file_name().to_string_lossy().to_string();
-
-        if known_folders.contains(&filename.as_str()) {
-            iter.skip_current_dir();
-        } else {
+    for entry in iter {
+        if let Ok(entry) = entry {
+            let path = entry.path().to_string_lossy().to_string();
+            println!("{}", path);
             count += 1;
         }
     }
 
-    println!("Number of directories discovered in the path: {count}");
+    println!("Number of directories discovered in the path: {}", count);
 }
