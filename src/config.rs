@@ -2,12 +2,12 @@ use std::collections::HashMap;
 use serde::Deserialize;
 
 #[derive(Deserialize)]
-struct GlobalConfig {
+pub struct GlobalConfig {
     pub skip: Option<Vec<String>>,
 }
 
 #[derive(Deserialize)]
-struct ProjectConfig {
+pub struct ProjectConfig {
     pub skip: Option<Vec<String>>,
     pub detect: Option<Vec<String>>,
     pub remove: Option<Vec<String>>,
