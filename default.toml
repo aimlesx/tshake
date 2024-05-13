@@ -1,9 +1,9 @@
 [all]
 skip = ['.git']
 
-[node]
+[js]
 detect = ['package.json']
-remove = ['node_modules']
+remove = ['node_modules', '.next']
 
 [rust]
 detect = ['Cargo.toml']
