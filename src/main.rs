@@ -40,7 +40,10 @@ fn discover_projects(path: &String, cfg: &config::Config) -> impl Iterator<Item 
 }
 
 fn main() {
-    let args = get_args();
+    let args = match get_args() {
+        Some(args) => args,
+        None => return,
+    };
     let cfg = match get_config() {
         Some(cfg) => cfg,
         None => return,

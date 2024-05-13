@@ -1,4 +1,5 @@
 use std::collections::{HashMap, HashSet};
+use std::collections::linked_list::Iter;
 use serde::Deserialize;
 
 #[derive(Deserialize)]
@@ -16,36 +17,36 @@ pub struct ProjectConfig {
 impl GlobalConfig {
     pub fn get_skip(&self) -> HashSet<String> {
         if let Some(skip) = &self.skip {
-            skip.clone().into_iter().collect()
+            skip.iter().cloned().collect()
         } else {
             HashSet::new()
         }
     }
 }
 impl ProjectConfig {
-    // Write method "getSkip" that returns a HashSet of strings from skip and remove
     pub fn get_skip(&self) -> HashSet<String> {
         let mut combined = Vec::new();
+
         if let Some(skip) = &self.skip {
-            combined.extend(skip.clone());
+            combined.extend(skip.iter().cloned());
         }
 
         if let Some(remove) = &self.remove {
-            combined.extend(remove.clone());
+            combined.extend(remove.iter().cloned());
         }
 
         combined.into_iter().collect()
     }
     pub fn get_remove(&self) -> HashSet<String> {
         if let Some(remove) = &self.remove {
-            remove.clone().into_iter().collect()
+            remove.iter().cloned().collect()
         } else {
             HashSet::new()
         }
     }
     pub fn get_detect(&self) -> HashSet<String> {
         if let Some(detect) = &self.detect {
-            detect.clone().into_iter().collect()
+            detect.iter().cloned().collect()
         } else {
             HashSet::new()
         }

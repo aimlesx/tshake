@@ -12,6 +12,12 @@ pub struct Opt {
     pub days: u64,
 }
 
-pub fn get_args() -> Opt {
-    Opt::parse()
+pub fn get_args() -> Option<Opt> {
+    match Opt::try_parse() {
+        Ok(opts) => Some(opts),
+        Err(e) => {
+            eprintln!("Error parsing arguments: {}", e);
+            None
+        },
+    }
 }
