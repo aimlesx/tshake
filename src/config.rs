@@ -78,7 +78,13 @@ impl Config {
     }
 }
 
-pub fn get_config() -> Config {
+pub fn get_config() -> Option<Config> {
     let config = include_str!("../default.toml");
-    toml::from_str(config).unwrap()
+    match toml::from_str(config) {
+        Ok(cfg) => Some(cfg),
+        Err(e) => {
+            eprintln!("Error parsing config: {}", e);
+            None
+        }
+    }
 }
