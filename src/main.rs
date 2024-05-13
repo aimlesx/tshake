@@ -15,10 +15,7 @@ fn should_skip(entry: &DirEntry) -> bool {
         .map_or(false, |name| known_folders.contains(&name))
 }
 
-fn main() {
-    let args = get_args();
-    let cfg = get_config();
-
+fn discover_projects(path: &String, cfg: &config::Config) -> impl Iterator<Item = DirEntry> {
     let detect: HashSet<String> = cfg
         .projects
         .values()
@@ -26,13 +23,11 @@ fn main() {
         .flatten()
         .collect();
 
-    let mut count: u64 = 0;
-
-    let dirs = WalkDir::new(&args.directory)
+    let dirs = WalkDir::new(&path)
         .into_iter()
         .filter_entry(|e| e.file_type().is_dir() && !should_skip(e));
 
-    let is_project_root = |entry: &DirEntry| {
+    let is_project_root = move |entry: &DirEntry| {
         let dir = entry.path();
         let items = dir.read_dir().unwrap();
         let items: Vec<String> = items
@@ -42,9 +37,17 @@ fn main() {
         items.iter().any(|item| detect.contains(item))
     };
 
-    let project_roots = dirs
-        .map_while(|entry| entry.ok())
-        .filter(is_project_root);
+    dirs.map_while(|entry| entry.ok())
+        .filter(is_project_root)
+}
+
+fn main() {
+    let args = get_args();
+    let cfg = get_config();
+
+    let mut count: u64 = 0;
+
+    let project_roots = discover_projects(&args.directory, &cfg);
 
     for entry in project_roots {
         let path = entry.path().to_string_lossy().to_string();
