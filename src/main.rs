@@ -1,6 +1,7 @@
 mod config;
 mod args;
 
+use std::collections::HashSet;
 use config::get_config;
 use args::get_args;
 use walkdir::{DirEntry, WalkDir};
@@ -18,19 +19,38 @@ fn main() {
     let args = get_args();
     let cfg = get_config();
 
+    let detect: HashSet<String> = cfg
+        .projects
+        .values()
+        .filter_map(|project| project.detect.clone())
+        .flatten()
+        .collect();
+
     let mut count: u64 = 0;
 
-    let iter = WalkDir::new(&args.directory)
+    let dirs = WalkDir::new(&args.directory)
         .into_iter()
         .filter_entry(|e| e.file_type().is_dir() && !should_skip(e));
 
-    for entry in iter {
-        if let Ok(entry) = entry {
-            let path = entry.path().to_string_lossy().to_string();
-            println!("{}", path);
-            count += 1;
-        }
+    let is_project_root = |entry: &DirEntry| {
+        let dir = entry.path();
+        let items = dir.read_dir().unwrap();
+        let items: Vec<String> = items
+            .filter_map(|item| item.ok())
+            .filter_map(|item| item.file_name().into_string().ok())
+            .collect();
+        items.iter().any(|item| detect.contains(item))
+    };
+
+    let project_roots = dirs
+        .map_while(|entry| entry.ok())
+        .filter(is_project_root);
+
+    for entry in project_roots {
+        let path = entry.path().to_string_lossy().to_string();
+        println!("{}", path);
+        count += 1;
     }
 
-    println!("Number of directories discovered in the path: {}", count);
+    println!("Number of projects discovered in the path: {}", count);
 }
